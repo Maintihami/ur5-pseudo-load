@@ -8,7 +8,7 @@ This project aims to control a robotic system using real-time data to conduct te
 - **Program on the Robot's Polyscope Interface**: This program is responsible for executing the robot's movements based on received commands and processed data.
 - **Control and Data Acquisition Program on PC**: Running on a computer, this program collects data from force-torque sensors and adjusts the robot's trajectory in real-time in response to detected forces.
 
-The system enables the simulation of pseudo-static loads on the samples, based on user-defined inputs such as velocity vectors and force thresholds. The collected data are crucial for analyzing the mechanical responses of bones under various load conditions, which is vital for orthopedic research.
+The system enables the simulation of pseudo loads on the samples, based on user-defined inputs such as velocity vectors and force thresholds and number of cycles. The collected data are crucial for analyzing the mechanical responses of bones under various load conditions, which is vital for orthopedic research.
 
 
 ## System Requirements
@@ -34,7 +34,7 @@ pip install matplotlib numpy
 
 1. Clone this repository to your local directory:
 ```sh
-git clone https://gitlab.ensta-bretagne.fr/tihamima/ur5-pseudo-load.git
+git clone https://github.com/Maintihami/ur5-pseudo-load.git
 cd ur5-pseudo-load
 ```
 2. Install the required libraries (see above).
@@ -67,7 +67,8 @@ then into the power source.
 3. **Connect the robot to your PC**: use an Ethernet cable.
 4. **Load the Program on Polyscope**:
 Navigate to the new_folder_2 on the Polyscope interface.
-Select the `spine_testing.urp` file and click open to load it.
+Select the 'Go_position.urp' file and click open to load it, it will go to the initial position to mount the spine to the robot.
+Select then the `spine_testing.urp` file and click open to load it.
 The robot may restart. Then click play from beginning Robot Program
 
 5. **Running the Program on PC**
@@ -77,16 +78,16 @@ Navigate to the Source Directory: Change to the src directory where the Python s
 **Running the Complete Movement Sequence**
 To program all movements at the start, execute the following command:
 ```sh
-python spine_rtde_one_go.py
+python pseudo_load.py
 ```
-This script initializes and sends the entire sequence of movements to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.
-
+This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.
+<!-- 
 **Dynamic Execution Mode**
 For a dynamic approach, where the robot requests the next movement after detecting that force limits have been exceeded, use:
 ```sh
 python spine_rtde_step_by_step.py
 ```
-This script operates in a step-by-step mode, allowing for real-time adjustments based on sensory feedback. After the robot exceeds the predefined force thresholds, it pauses and waits for the next movement command. This approach is useful for applications requiring adaptive responses to varying loads or unexpected conditions.
+This script operates in a step-by-step mode, allowing for real-time adjustments based on sensory feedback. After the robot exceeds the predefined force thresholds, it pauses and waits for the next movement command. This approach is useful for applications requiring adaptive responses to varying loads or unexpected conditions. -->
 
 Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.
 

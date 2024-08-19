@@ -14,7 +14,6 @@ import logging
 # Multiple forces can be monitored simultaneously, each with distinct thresholds and logic operators.
 # The program allows the user to specify the speed vector in the base frame, which dictates the trajectory of the robot.
 
-
 """-----------------------------sensor initialization-----------------------------------"""
 # Function to convert the force from the sensor frame to the base frame
 def rotation(force):
@@ -135,7 +134,7 @@ def get_valid_frequency(max_recommended=500):
 
 # Set the acquisition rate
 # signal_frequency = get_valid_frequency()
-signal_frequency = 500
+signal_frequency = 30
 amti_dll.fmBroadcastAcquisitionRate(signal_frequency)       #The new acquisition rate will take affect with the next Start command
 print(f"Acquisition rate set to {signal_frequency} Hz.")
 
@@ -156,8 +155,8 @@ data_values = []        #to store the data received, it includes the none values
 
 # Define the sample rate
 # The  Nyquist–Shannon sampling theorem states that the sample rate must be at least twice the bandwidth of the signal to avoid aliasing
-#sample_rate = 1/(signal_frequency)      #Median loop frequency: 391.66 Hz
-sample_rate = 1/(2*signal_frequency)     #Median loop frequency: 791.08 Hz
+
+sample_rate = 1/60
 
 # Define the relative path for the output folder
 output_folder = '../output'
@@ -172,7 +171,7 @@ output_path = os.path.join(script_dir, output_folder)
 os.makedirs(output_path, exist_ok=True)
 
 # Specify the relative path for the new output file
-output_file_path = os.path.join(output_path, "output.txt")
+output_file_path = os.path.join(output_path, "output.lvm")
 """-----------------------------control parameters-----------------------------------"""
 
 # Add the parent directory of src to the Python path
@@ -269,6 +268,15 @@ def collect_initial_inputs():
     print("Enter the initial data inputs.")
     
     while True:
+        while True:
+            try:
+                cycles = int(input("Enter the number of cycles: "))
+                if cycles > 0:
+                    break
+                else:
+                    print("Please enter a positive integer.")
+            except ValueError:
+                print("Invalid input. Please enter an integer.")
         # Get the speed vector with validation
         while True:
             try:
@@ -318,12 +326,12 @@ def collect_initial_inputs():
                     print("Invalid input. Please enter a numeric value for the threshold.")
 
     
-
+        
         selected_forces_list.append(selected_forces)
         thresholds_list.append(thresholds)
 
         # Get the logic operator with validation
-        if len(selected_forces_list) > 1:
+        if len(selected_forces) > 1:
             while True:
                 logic_op = input("Enter the logic operator ('or' or 'and'): ").strip().lower()
                 if logic_op in ['or', 'and']:
@@ -338,13 +346,15 @@ def collect_initial_inputs():
         more_inputs = input("Do you want to add another set of inputs? (yes/no): ").strip().lower()
         if more_inputs != 'yes':
             break
-
-    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list
+        
+        
+    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles
 
 # Collect all inputs at the start
-Vspeed_list, selected_forces_list, thresholds_list, logic_op_list = collect_initial_inputs()
+Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles = collect_initial_inputs()
 # Initialize the first set of inputs
 current_index = 0
+current_cycle = 0
 Vspeed_input = Vspeed_list[current_index]
 selected_forces = selected_forces_list[current_index]
 thresholds = thresholds_list[current_index]
@@ -358,14 +368,37 @@ if not con.send_start():
     sys.exit()
 
 
-#Writing to the file
+
+# Writing the header to the file (only once at the beginning)
 with open(output_file_path, 'w') as f:
-    # Write the settings to the file
+    f.write("LabVIEW Measurement\n")
+    f.write("Writer_Version\t2\n")
+    f.write("Reader_Version\t2\n")
+    f.write("Separator\tTab\n")
+    f.write("Decimal_Separator\t.\n")
+    f.write("Multi_Headings\tNo\n")
+    f.write("X_Columns\tOne\n")
+    f.write("Time_Pref\tAbsolute\n")
+    f.write("Operator\tPythonScript\n")
+    f.write(f"Date\t{time.strftime('%Y/%m/%d')}\n")
+    f.write(f"Time\t{time.strftime('%H:%M:%S')}\n")
+    f.write("***End_of_Header***\n")
+    f.write("\n")
+    f.write("Channels\t6\n")
+    f.write("Samples\t{0}\n".format(nbr_data_pooled // 8))
+    f.write(f"Y_Unit_Label\t{force_units}\t{force_units}\t{force_units}\t{moment_units}\t{moment_units}\t{moment_units}\n")
+    f.write("X_Dimension\tTime\tTime\tTime\tTime\tTime\tTime\n")
+    f.write("X0\t0.0000000000000000E+0\n")
+    f.write(f"Delta_X\t{sample_rate}\n")
+
+    #
     f.write(f"packet size: {packet_size}bytes\n")
     f.write(f"number of packets: {nbr_data_pooled/8}\n")
     f.write(f"signal frequency: {signal_frequency}\n")
     f.write(f"sample frequency: {1/sample_rate}\n")
-    f.write(f"force units: {force_units}, moment units: {moment_units}\n")
+    #
+    f.write("***End_of_Header***\n")
+
 
 amti_dll.fmBroadcastResetSoftware()     #Apply the settings
 time.sleep(0.5)  # Sleep for at least 250 milliseconds, Wait for the settings to take effect
@@ -378,6 +411,7 @@ print("Platform zeroed.")
 print("Starting data acquisition...")
 amti_dll.fmBroadcastStart()
 time.sleep(0.91)  # Wait for the start command to take effect
+
 print("Data acquisition started.")
 # Fonctions utilitaires pour la conversion entre les listes et les points de consigne
 def Vspeed_to_list(Vspeed):
@@ -428,16 +462,17 @@ try:
                 Mx = rotated_moments[:, 0].tolist()
                 My = rotated_moments[:, 1].tolist()
                 Mz = rotated_moments[:, 2].tolist()
-                #write into the txt file
+
+                # Write into the .lvm file
                 with open(output_file_path, 'a') as f:
                     for i in range(len(counter)):
-                        f.write(f"Counter: {counter[i]:<10}, ")
-                        f.write(f"Fx: {round(Fx[i], 2):<10},")
-                        f.write(f"Fy: {round(Fy[i], 2):<10}, ")
-                        f.write(f"Fz: {round(Fz[i], 2):<10}, ")
-                        f.write(f"Mx: {round(Mx[i], 4):<10},")
-                        f.write(f"My: {round(My[i], 4):<10},")
-                        f.write(f"Mz: {round(Mz[i], 4):<10},\n")
+                        f.write(f"{counter[i]:<10}\t")
+                        f.write(f"{Fx[i]:<10.5f}\t")
+                        f.write(f"{Fy[i]:<10.5f}\t")
+                        f.write(f"{Fz[i]:<10.5f}\t")
+                        f.write(f"{Mx[i]:<10.5f}\t")
+                        f.write(f"{My[i]:<10.5f}\t")
+                        f.write(f"{Mz[i]:<10.5f}\n")
 
                 # Add the data to the lists
                 counter_values.extend(counter)
@@ -467,7 +502,6 @@ try:
             servoing.input_int_register_0  = 1
             con.send(servoing)
             if state.output_int_register_0 != 0:
-                # print("Vspeed", Vspeed_to_list(Vspeed1))
                 con.send(Vspeed1)
                 
 
@@ -478,7 +512,7 @@ try:
                 print("Force limits exceeded.")
                 servoing.input_int_register_0 = 0
                 con.send(servoing)
-                time.sleep(2)  # Wait for the robot to stop
+                
                 force_names = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
                 for index in exceeded_indices:
                     if thresholds[index] >= 0:
@@ -486,25 +520,42 @@ try:
                     else:
                         print(f"{force_names[selected_forces[index]]} has exceeded its threshold with a value of {min(force_data_lists[selected_forces[index]])} ({force_units}/{moment_units})")
                     continue
-                # Move to the next set of inputs
-                current_index += 1
-                #initialize the force and moment values
-                Fx, Fy, Fz = [], [], []
-                Mx, My, Mz = [], [], []
-                force_data_lists = [Fx, Fy, Fz, Mx, My, Mz]
-                if current_index < len(Vspeed_list):
-                    Vspeed_input = Vspeed_list[current_index]
-                    selected_forces = selected_forces_list[current_index]
-                    thresholds = thresholds_list[current_index]
-                    logic_ops = logic_op_list[current_index]
-                    check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
+                time.sleep(2)               # Wait for the robot to stop
+                current_cycle += 0.5        # Increment the cycle count by 0.5
+                if current_cycle < cycles:
+                    #initialize the force and moment values
+                    Fx, Fy, Fz = [], [], []
+                    Mx, My, Mz = [], [], []
+                    force_data_lists = [Fx, Fy, Fz, Mx, My, Mz]
+                    Vspeed_input = [-v for v in Vspeed_input]
+                    thresholds = [-t for t in thresholds]
                     Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
                     con.send(Vspeed1)
+                    check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
+                    
                     servoing.input_int_register_0 = 1
                     con.send(servoing)
                 else:
-                    print("All input sets have been used. Stopping.")
-                    break
+                    # Move to the next set of inputs
+                    current_index += 1
+                    current_cycle = 0
+                    #initialize the force and moment values
+                    Fx, Fy, Fz = [], [], []
+                    Mx, My, Mz = [], [], []
+                    force_data_lists = [Fx, Fy, Fz, Mx, My, Mz]
+                    if current_index < len(Vspeed_list):
+                        Vspeed_input = Vspeed_list[current_index]
+                        selected_forces = selected_forces_list[current_index]
+                        thresholds = thresholds_list[current_index]
+                        logic_ops = logic_op_list[current_index]
+                        check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
+                        Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
+                        con.send(Vspeed1)
+                        servoing.input_int_register_0 = 1
+                        con.send(servoing)
+                    else:
+                        print("All input sets have been used. Stopping.")
+                        break
 
             # Additional processing...
         except Exception as e:
