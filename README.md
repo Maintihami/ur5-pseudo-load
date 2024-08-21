@@ -1,4 +1,4 @@
-# UR5 pseudo load
+# UR5 Pseudo Load
 
 
 ## Project Overview
@@ -8,7 +8,7 @@ This project aims to control a robotic system using real-time data to conduct te
 - **Program on the Robot's Polyscope Interface**: This program is responsible for executing the robot's movements based on received commands and processed data.
 - **Control and Data Acquisition Program on PC**: Running on a computer, this program collects data from force-torque sensors and adjusts the robot's trajectory in real-time in response to detected forces.
 
-The system enables the simulation of pseudo loads on the samples, based on user-defined inputs such as velocity vectors and force thresholds and number of cycles. The collected data are crucial for analyzing the mechanical responses of bones under various load conditions, which is vital for orthopedic research.
+The system enables the simulation of pseudo loads on the samples, based on user-defined inputs such as velocity vectors, force thresholds, and the number of cycles. The collected data are crucial for analyzing the mechanical responses of bones under various load conditions, which is vital for orthopedic research.
 
 
 ## System Requirements
@@ -25,15 +25,19 @@ The system enables the simulation of pseudo loads on the samples, based on user-
 1. **Python 3.x**: Ensure Python is installed on your system.
 2. **Libraries**: Required Python libraries include ctypes, matplotlib, numpy, os, sys, and logging. Install them using:
 ```sh
-pip install matplotlib numpy
+pip install matplotlib numpy ctypes os sys logging
 ```
-3. **Hardware**: The transducer AMTI MC3A and its Gen5 amplifier, and a the UR5e robot 
+3. **Hardware**: The transducer AMTI MC3A and its Gen5 amplifier, and a the UR5e robot.
 
 
 ### Setup Steps
 
-1. Clone this repository to your local directory:
+You have two choices: 
+- Use the USB drive AMTI force and Motion, 
+- or clone this repository to your local directory. Let's say that you have chosen to put it in a USB drive, go to file explorer and check what is the given name of the USB, let's say, for example, it is G:
+Press Windows + R, type "cmd", then "OK". In the terminal, type
 ```sh
+G:
 git clone https://github.com/Maintihami/ur5-pseudo-load.git
 cd ur5-pseudo-load
 ```
@@ -59,40 +63,49 @@ Each directory is organized to maintain a clear separation of different aspects 
 ## Usage
 
 1. **Power On the Robot**: Ensure that the robot is powered on.
-2. **Mount the trasducer**
--Attach the 7615 cable from the platform to the transducer input port.
-- Make sure the power switch is set to the off position. Plug the power supply into the Gen 5 and
-then into the power source.
+2. **Mount the transducer**
+- Attach the 7615 cable from the platform to the transducer input port.
+- Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
 - Attach the USB cable from the Gen 5 to the PC.
 3. **Connect the robot to your PC**: use an Ethernet cable.
-4. **Load the Program on Polyscope**:
-Navigate to the new_folder_2 on the Polyscope interface.
-Select the 'Go_position.urp' file and click open to load it, it will go to the initial position to mount the spine to the robot.
-Select then the `spine_testing.urp` file and click open to load it.
-The robot may restart. Then click play from beginning Robot Program
-
-5. **Running the Program on PC**
-
+4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
+Go to Startup and select Hardware Zero, then select Start
+![AMTI-NetForce](C:\Users\maint\Videos\amti.jpg)
+5. **Mount the spine**:
+Navigate to Open -> new_folder_2 on the Polyscope interface.
+Select the 'start_point.urp' file and click open to load it, The robot may restart, and make you reselect the file, and load it.
+![OpenFiles](C:\Users\maint\Videos\open_files.jpg)
+You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.
+Make sure to align the screws with the sensor holes, press the free driver (the black button on the top back of the polyscope) 
+to mount the spine to the robot.
+6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.
+![Set_Payload*](C:\Users\maint\Videos\set_payload.jpg)
+7. **Set the tool center position**: On the polyscope go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
+(for my sample it is z = 17.5)
+8. **Load the Program on Polyscope**:Select the `spine_testing.urp` file and click open to load it.
+Then click 'play from beginning Robot Program' to start the robot program.
+9. **Running the Program on PC**
 Navigate to the Source Directory: Change to the src directory where the Python scripts are located.
-
+```sh
+cd src
+```
 **Running the Complete Movement Sequence**
 To program all movements at the start, execute the following command:
+while being in the directory G:\ur5-pseudo-load\src>
+Type on the terminal.
 ```sh
 python pseudo_load.py
 ```
 This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.
-<!-- 
-**Dynamic Execution Mode**
-For a dynamic approach, where the robot requests the next movement after detecting that force limits have been exceeded, use:
-```sh
-python spine_rtde_step_by_step.py
-```
-This script operates in a step-by-step mode, allowing for real-time adjustments based on sensory feedback. After the robot exceeds the predefined force thresholds, it pauses and waits for the next movement command. This approach is useful for applications requiring adaptive responses to varying loads or unexpected conditions. -->
-
+**Explanation of Inputs:**
 Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.
-
-6. **Running the program on the polyscope** run program from start
-
+- **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.1m/s and 0.03rad/s is generally sufficient.
+- **Force Thresholds**: These values set the limits for the forces applied during the tests. The robot will adjust its movements to stay within these thresholds.
+Important: Don't forget the action-reaction rule. If you are working with a spine and you chose (0, 0, 0, 0.03, -0.03, 0) and you decided to monitor Mx and My, make sure to set the threshold at a value with the opposite sign (e.g., Mx= -4, My = 7).
+10. **Running the program on the polyscope** run program from start
+11. **The end**: At the end of the program, you can stop the program running on the polyscope.
+**Stopping the Robot**:
+- To safely stop the robot in case of an emergency, press the emergency stop button on the robot or on the Polyscope interface.
 
 ## Demo Video
 
@@ -122,7 +135,7 @@ All contributions will be reviewed by the Orthopedic Biomechanics Research Labor
 
 ## License
 
-This project is an open source
+This project is open source and is licensed under the MIT License.
 
 
 ## Contact

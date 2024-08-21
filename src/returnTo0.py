@@ -512,10 +512,7 @@ try:
             limits_exceeded, exceeded_indices = check_limits([force_data_lists[i] for i in selected_forces])
             if limits_exceeded:
                 print("Force limits exceeded.")
-                with open(output_file_path, 'a') as f:
-                    f.write(f"Force limits exceeded at cycle {current_cycle}.\n")
                 servoing.input_int_register_0 = 0
-                
                 con.send(servoing)
                 
                 force_names = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']

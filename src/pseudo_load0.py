@@ -264,7 +264,7 @@ def collect_initial_inputs():
     thresholds_list = []
     selected_forces_list = []
     logic_op_list = [] 
-    cycles_list = []
+
     print("Enter the initial data inputs.")
     
     while True:
@@ -272,7 +272,6 @@ def collect_initial_inputs():
             try:
                 cycles = float(input("Enter the number of cycles: "))
                 if cycles > 0:
-                    cycles_list.append(cycles)
                     break
                 else:
                     print("Please enter a positive integer.")
@@ -349,10 +348,10 @@ def collect_initial_inputs():
             break
         
         
-    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list
+    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles
 
 # Collect all inputs at the start
-Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list = collect_initial_inputs()
+Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles = collect_initial_inputs()
 # Initialize the first set of inputs
 current_index = 0
 current_cycle = 0
@@ -362,7 +361,6 @@ thresholds = thresholds_list[current_index]
 logic_ops= logic_op_list[current_index]
 check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
 Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
-selected_cycle = cycles_list[current_index]
 con.send(Vspeed1)
 
 # Démarrer la synchronisation des données
@@ -512,10 +510,7 @@ try:
             limits_exceeded, exceeded_indices = check_limits([force_data_lists[i] for i in selected_forces])
             if limits_exceeded:
                 print("Force limits exceeded.")
-                with open(output_file_path, 'a') as f:
-                    f.write(f"Force limits exceeded at cycle {current_cycle}.\n")
                 servoing.input_int_register_0 = 0
-                
                 con.send(servoing)
                 
                 force_names = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
@@ -527,7 +522,7 @@ try:
                     continue
                 time.sleep(2)               # Wait for the robot to stop
                 current_cycle += 0.5        # Increment the cycle count by 0.5
-                if current_cycle < cycles_list[current_index]:
+                if current_cycle < cycles:
                     #initialize the force and moment values
                     Fx, Fy, Fz = [], [], []
                     Mx, My, Mz = [], [], []

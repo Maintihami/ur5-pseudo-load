@@ -134,7 +134,7 @@ def get_valid_frequency(max_recommended=500):
 
 # Set the acquisition rate
 # signal_frequency = get_valid_frequency()
-signal_frequency = 100
+signal_frequency = 30
 amti_dll.fmBroadcastAcquisitionRate(signal_frequency)       #The new acquisition rate will take affect with the next Start command
 print(f"Acquisition rate set to {signal_frequency} Hz.")
 
@@ -156,7 +156,7 @@ data_values = []        #to store the data received, it includes the none values
 # Define the sample rate
 # The  Nyquist–Shannon sampling theorem states that the sample rate must be at least twice the bandwidth of the signal to avoid aliasing
 
-sample_rate = 1/200
+sample_rate = 1/60
 
 # Define the relative path for the output folder
 output_folder = '../output'
@@ -264,15 +264,14 @@ def collect_initial_inputs():
     thresholds_list = []
     selected_forces_list = []
     logic_op_list = [] 
-    cycles_list = []
+
     print("Enter the initial data inputs.")
     
     while True:
         while True:
             try:
-                cycles = float(input("Enter the number of cycles: "))
+                cycles = int(input("Enter the number of cycles: "))
                 if cycles > 0:
-                    cycles_list.append(cycles)
                     break
                 else:
                     print("Please enter a positive integer.")
@@ -349,10 +348,10 @@ def collect_initial_inputs():
             break
         
         
-    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list
+    return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles
 
 # Collect all inputs at the start
-Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list = collect_initial_inputs()
+Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles = collect_initial_inputs()
 # Initialize the first set of inputs
 current_index = 0
 current_cycle = 0
@@ -362,7 +361,6 @@ thresholds = thresholds_list[current_index]
 logic_ops= logic_op_list[current_index]
 check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
 Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
-selected_cycle = cycles_list[current_index]
 con.send(Vspeed1)
 
 # Démarrer la synchronisation des données
@@ -512,10 +510,7 @@ try:
             limits_exceeded, exceeded_indices = check_limits([force_data_lists[i] for i in selected_forces])
             if limits_exceeded:
                 print("Force limits exceeded.")
-                with open(output_file_path, 'a') as f:
-                    f.write(f"Force limits exceeded at cycle {current_cycle}.\n")
                 servoing.input_int_register_0 = 0
-                
                 con.send(servoing)
                 
                 force_names = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
@@ -527,7 +522,7 @@ try:
                     continue
                 time.sleep(2)               # Wait for the robot to stop
                 current_cycle += 0.5        # Increment the cycle count by 0.5
-                if current_cycle < cycles_list[current_index]:
+                if current_cycle < cycles:
                     #initialize the force and moment values
                     Fx, Fy, Fz = [], [], []
                     Mx, My, Mz = [], [], []
@@ -537,10 +532,19 @@ try:
                     Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
                     con.send(Vspeed1)
                     check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
-                    
                     servoing.input_int_register_0 = 1
                     con.send(servoing)
+
                 else:
+                    #return to the initial position
+                    print("All cycles have been completed. Returning to the initial position.")
+                    Vspeed_input = [-v for v in Vspeed_input]
+                    thresholds = [1 for t in thresholds]
+                    Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
+                    con.send(Vspeed1)
+                    servoing.input_int_register_0 = 1
+                    con.send(servoing)
+
                     # Move to the next set of inputs
                     current_index += 1
                     current_cycle = 0
