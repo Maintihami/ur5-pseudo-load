@@ -62,24 +62,27 @@ Each directory is organized to maintain a clear separation of different aspects 
 
 ## Usage
 
-1. **Power On the Robot**: Ensure that the robot is powered on.
+1. **Power On**: Ensure that the Polyscope is powered on.
+Navigate to Open -> new_folder_2 on the Polyscope interface.
+Select the 'start_point.urp' file
+Go to the button "Power off", click on "ON", then on "START", then on "Exit"
+Start the program.
 2. **Mount the transducer**
 - Attach the 7615 cable from the platform to the transducer input port.
 - Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
 - Attach the USB cable from the Gen 5 to the PC.
-3. **Connect the robot to your PC**: use an Ethernet cable.
+- Align the transducer face with the label, with the M8 connector.
+![The montage](https://colostate-my.sharepoint.com/:i:/g/personal/c837367595_colostate_edu/EUt18uWPpHRLsUXCM0CRA_YBf-pM-kKcKDrru-_f748ToA?e=Aof8T5)
+3. **Connect the robot to your PC**: Attach an ethernet cable to the Control box and to your computer.
 4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
 Go to Startup and select Hardware Zero, then select Start
-![AMTI-NetForce](C:\Users\maint\Videos\amti.jpg)
 5. **Mount the spine**:
 Navigate to Open -> new_folder_2 on the Polyscope interface.
 Select the 'start_point.urp' file and click open to load it, The robot may restart, and make you reselect the file, and load it.
-![OpenFiles](C:\Users\maint\Videos\open_files.jpg)
 You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.
 Make sure to align the screws with the sensor holes, press the free driver (the black button on the top back of the polyscope) 
 to mount the spine to the robot.
 6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.
-![Set_Payload*](C:\Users\maint\Videos\set_payload.jpg)
 7. **Set the tool center position**: On the polyscope go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
 (for my sample it is z = 17.5)
 8. **Load the Program on Polyscope**:Select the `spine_testing.urp` file and click open to load it.
