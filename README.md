@@ -72,8 +72,7 @@ Start the program.
 - Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
 - Attach the USB cable from the Gen 5 to the PC.
 - Align the transducer face with the label, with the M8 connector.
-<!-- ![The montage](https://colostate-my.sharepoint.com/:i:/g/personal/c837367595_colostate_edu/EUt18uWPpHRLsUXCM0CRA_YBf-pM-kKcKDrru-_f748ToA?e=Aof8T5) -->
-<img src="https://colostate-my.sharepoint.com/:i:/g/personal/c837367595_colostate_edu/EUt18uWPpHRLsUXCM0CRA_YBf-pM-kKcKDrru-_f748ToA?e=Aof8T5" alt="Transducer Face Alignment" width="500">
+![Montage](images/montage.jpg)
 
 3. **Connect the robot to your PC**: Attach an ethernet cable to the Control box and to your computer.
 4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
