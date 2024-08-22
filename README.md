@@ -77,6 +77,7 @@ Start the program.
 3. **Connect the robot to your PC**: Attach an ethernet cable to the Control box and to your computer.
 4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
 Go to Startup and select Hardware Zero, then select Start
+<img src="Images/amti.jpg" alt="Montage Image" width="500">
 5. **Mount the spine**:
 Navigate to Open -> new_folder_2 on the Polyscope interface.
 Select the 'start_point.urp' file and click open to load it, The robot may restart, and make you reselect the file, and load it.
