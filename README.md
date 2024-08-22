@@ -81,16 +81,16 @@ Go to Startup and select Hardware Zero, then select Start
 5. **Mount the spine**:
 Navigate to Open -> new_folder_2 on the Polyscope interface.
 Select the 'start_point.urp' file and click open to load it, The robot may restart, and make you reselect the file, and load it.
-You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.
+You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.  
 Make sure to align the screws with the sensor holes, press the free driver (the black button on the top back of the polyscope) 
-to mount the spine to the robot.
-6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.
+to mount the spine to the robot.  
+6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.  
 7. **Set the tool center position**: On the polyscope go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
-(for my sample it is z = 17.5)
+(for my sample it is z = 17.5)  
 8. **Load the Program on Polyscope**:Select the `spine_testing.urp` file and click open to load it.
-Then click 'play from beginning Robot Program' to start the robot program.
+Then click 'play from beginning Robot Program' to start the robot program.  
 9. **Running the Program on PC**
-Navigate to the Source Directory: Change to the src directory where the Python scripts are located.
+Navigate to the Source Directory: Change to the src directory where the Python scripts are located.  
 ```sh
 cd src
 ```
@@ -100,17 +100,17 @@ while being in the directory G:\ur5-pseudo-load\src>
 Type on the terminal.
 ```sh
 python pseudo_load.py
-```
-This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.
-**Explanation of Inputs:**
-Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.
-- **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.1m/s and 0.03rad/s is generally sufficient.
+```  
+This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.  
+**Explanation of Inputs:**  
+Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.  
+- **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.1m/s and 0.03rad/s is generally sufficient.  
 - **Force Thresholds**: These values set the limits for the forces applied during the tests. The robot will adjust its movements to stay within these thresholds.
-Important: Don't forget the action-reaction rule. If you are working with a spine and you chose (0, 0, 0, 0.03, -0.03, 0) and you decided to monitor Mx and My, make sure to set the threshold at a value with the opposite sign (e.g., Mx= -4, My = 7).
-10. **Running the program on the polyscope** run program from start
-11. **The end**: At the end of the program, you can stop the program running on the polyscope.
+Important: Don't forget the action-reaction rule. If you are working with a spine and you chose (0, 0, 0, 0.03, -0.03, 0) and you decided to monitor Mx and My, make sure to set the threshold at a value with the opposite sign (e.g., Mx= -4, My = 7).  
+10. **Running the program on the polyscope** run program from start  
+11. **The end**: At the end of the program, you can stop the program running on the polyscope.  
 **Stopping the Robot**:
-- To safely stop the robot in case of an emergency, press the emergency stop button on the robot or on the Polyscope interface.
+- To safely stop the robot in case of an emergency, press the emergency stop button on the robot or on the Polyscope interface.  
 
 ## Demo Video
 
