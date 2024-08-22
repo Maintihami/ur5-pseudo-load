@@ -84,6 +84,8 @@ Select the 'start_point.urp' file and click open to load it, The robot may resta
 You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.  
 Make sure to align the screws with the sensor holes, press the free driver (the black button on the top back of the polyscope) 
 to mount the spine to the robot.  
+
+
 6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.  
 7. **Set the tool center position**: On the polyscope go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
 (for my sample it is z = 17.5)  
