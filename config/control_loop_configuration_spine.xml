@@ -2,6 +2,8 @@
 <rtde_config>
 	<recipe key="state">
 		<field name="output_int_register_0" type="INT32"/>
+		<field name="actual_TCP_pose" type="VECTOR6D"/>
+
 	</recipe>
 
 	<recipe key="Vspeed">
@@ -12,7 +14,6 @@
 		<field name="input_double_register_4" type="DOUBLE"/>
 		<field name="input_double_register_5" type="DOUBLE"/>
 	</recipe>
-
 	<recipe key="servoing">
 		<field name="input_int_register_0" type="INT32"/>
 	</recipe>

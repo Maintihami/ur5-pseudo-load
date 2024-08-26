@@ -5,7 +5,7 @@
 
 This project aims to control a robotic system using real-time data to conduct tests on bone samples as part of orthopedic studies. The system consists of two main components:
 
-- **Program on the Robot's Polyscope Interface**: This program is responsible for executing the robot's movements based on received commands and processed data.
+- **Program on the Robot's  Teach pendant**: This program is responsible for executing the robot's movements based on received commands and processed data.
 - **Control and Data Acquisition Program on PC**: Running on a computer, this program collects data from force-torque sensors and adjusts the robot's trajectory in real-time in response to detected forces.
 
 The system enables the simulation of pseudo loads on the samples, based on user-defined inputs such as velocity vectors, force thresholds, and the number of cycles. The collected data are crucial for analyzing the mechanical responses of bones under various load conditions, which is vital for orthopedic research.
@@ -33,7 +33,11 @@ pip install matplotlib numpy ctypes os sys logging
 ### Setup Steps
 
 You have two choices: 
-- Use the USB drive AMTI force and Motion, 
+- Use the USB drive AMTI force and Motion, go to file explorer and check what is the given name of the USB, let's say, for example, it is F:
+```sh
+F:
+cd ur5-pseudo-load
+```
 - or clone this repository to your local directory. Let's say that you have chosen to put it in a USB drive, go to file explorer and check what is the given name of the USB, let's say, for example, it is G:
 Press Windows + R, type "cmd", then "OK". In the terminal, type
 ```sh
@@ -47,6 +51,7 @@ cd ur5-pseudo-load
 
 The project directory is organized as follows to facilitate ease of navigation and clarity of purpose:
 
+  - **Images/**: Contains images displayed in the readme 
   - **config/**: Contains configuration files, such as control loop parameters and system settings.
   - **docs/**: Documentation and product Manuals, software and drivers.
   - **lib/**: Library files
@@ -62,37 +67,40 @@ Each directory is organized to maintain a clear separation of different aspects 
 
 ## Usage
 
-1. **Power On**: Ensure that the Polyscope is powered on.
-Navigate to Open -> new_folder_2 on the Polyscope interface.
+1. **Power On**: Ensure that the Teach pendant is powered on.
+Navigate to Open -> Program ->  new_folder_2 on the Teach pendant.
 Select the 'start_point.urp' file
-Go to the button "Power off", click on "ON", then on "START", then on "Exit"
-Start the program.
-2. **Mount the transducer**
-- Attach the 7615 cable from the platform to the transducer input port.
-- Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
-- Attach the USB cable from the Gen 5 to the PC.
-- Align the transducer face with the label, with the M8 connector.
-<img src="Images/montage.jpg" alt="Montage Image" width="500">
+Go to the button "Power off", click on "ON", then on "START", then on "Exit".
 
-3. **Connect the robot to your PC**: Attach an ethernet cable to the Control box and to your computer.
+2. **Mount the transducer**
+- Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
+- Attach the USB cable from the Gen 5 to the PC, then click on "On".
+- Align the transducer face with the label, with the M8 connector.
+<img src="Images/montage.jpg" alt="Montage Image" width="400">
+- Mount the transducer with the tool flange.
+- Attach the 7615 cable from the platform to the transducer input port.
+
+3. **Start position**:
+Start the program 'start_point.urp'
+You will need to keep pressing the button "Move robot to :3: Waypoint_1", It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver instead (the black button on the top back of the Teach pendant) while you are moving the robot with your hand to a safest position, then go back to press the button "Move robot to :3: Waypoint_1".
 4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
 Go to Startup and select Hardware Zero, then select Start
 <img src="Images/amti.jpg" alt="Montage Image" width="500">
 
-5. **Mount the spine**:
-Navigate to Open -> new_folder_2 on the Polyscope interface.
-Select the 'start_point.urp' file and click open to load it, The robot may restart, and make you reselect the file, and load it.
-You will need to keep pressing the button Go to waypoint, It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver (the black button on the top back of the polyscope) while you are moving the robot with your hand to a safest position, then go back to press the button Go to waypoint.  
-Make sure to align the screws with the sensor holes, press the free driver (the black button on the top back of the polyscope) 
-to mount the spine to the robot.  
+4. **Mount the transducer with the spine**:
+Press the free driver (the black button on the top back of the Teach pendant) while you are moving the robot with your hand to mount it with spine, make sure to align the screws with the sensor holes Screw in the bolts and fasten the nuts. 
+Watch the graphs on the AMTI-NetForce, and Press the free driver to move the robot to a position where the forces and torques are almost 0,  Note that the Fz value cannot be fully zeroed.
+<img src="Images/amti_graphs.png" alt="Force zeroed" width="500">
+3. **Connect the robot to your PC**: Attach an ethernet cable to the Control box and to your computer.
 
-6. **Set the payload**: On the polyscope go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.  
-7. **Set the tool center position**: On the polyscope go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
+
+6. **Set the payload**: On the Teach pendant go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.  
+7. **Set the tool center position**: On the Teach pendant go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
 (for my sample it is z = 17.5)  
-8. **Load the Program on Polyscope**:Select the `spine_testing.urp` file and click open to load it.
-Then click 'play from beginning Robot Program' to start the robot program.  
+
 9. **Running the Program on PC**
-Navigate to the Source Directory: Change to the src directory where the Python scripts are located.  
+Note the name of the directory
+On the terminal, Navigate to the Source Directory: Change to the src directory where the Python scripts are located.  
 ```sh
 cd src
 ```
@@ -106,13 +114,21 @@ python pseudo_load.py
 This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.  
 **Explanation of Inputs:**  
 Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.  
-- **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.1m/s and 0.03rad/s is generally sufficient.  
+- **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.05m/s and 0.03rad/s is generally sufficient.  
+Note that slower speeds gives higher precision
 - **Force Thresholds**: These values set the limits for the forces applied during the tests. The robot will adjust its movements to stay within these thresholds.
 Important: Don't forget the action-reaction rule. If you are working with a spine and you chose (0, 0, 0, 0.03, -0.03, 0) and you decided to monitor Mx and My, make sure to set the threshold at a value with the opposite sign (e.g., Mx= -4, My = 7).  
-10. **Running the program on the polyscope** run program from start  
-11. **The end**: At the end of the program, you can stop the program running on the polyscope.  
+
+8. **Load the Program on Teach pendant**:
+Navigate to Open -> Program -> new_folder_2 on the Teach pendant.
+Select the `spine_testing.urp` file and click open to load it.
+Select start then Then click 'play from beginning Robot Program' to start the robot program.  
+
+
+11. **The end**: At the end of the program, you can stop the program running on the Teach pendant.  
+
 **Stopping the Robot**:
-- To safely stop the robot in case of an emergency, press the emergency stop button on the robot or on the Polyscope interface.  
+- To safely stop the robot in case of an emergency, press the emergency stop button on the robot or on the  Teach pendant.  
 
 ## Demo Video
 
