@@ -67,23 +67,24 @@ Each directory is organized to maintain a clear separation of different aspects 
 
 ## Usage
 
-1. **Power On**: Ensure that the Teach pendant is powered on.
+1. **Power On**: Ensure that the Teach pendant (tablette) is powered on.
 Navigate to Open -> Program ->  new_folder_2 on the Teach pendant.
-Select the 'start_point.urp' file
-Go to the button "Power off", click on "ON", then on "START", then on "Exit".
+Select the 'start_point.urp' file click "open"
+Go to the button "Power off" (buttom left corner), click on "ON", then on "START" ensure ALL green boxes are checked, then on "Exit".
 
 2. **Mount the transducer**
-- Ensure the power switch is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
-- Attach the USB cable from the Gen 5 to the PC, then click on "On".
-- Align the transducer face with the label, with the M8 connector.
-<img src="Images/montage.jpg" alt="Montage Image" width="400">
-- Mount the transducer with the tool flange.
+- Ensure the power switch on the GEN5 signal conditioner is set to the off position. Plug the power supply into the Gen 5 and then into the power source.
+- Attach the USB cable from the Gen 5 to the PC, then click "On" on the GEN5 signal conditioner.
+If the sensor is not mounted;
+  - Align the transducer face with the label, with the M8 connector.
+  <img src="Images/montage.jpg" alt="Montage Image" width="400">
+  - Mount the transducer with the tool flange.
 - Attach the 7615 cable from the platform to the transducer input port.
 
 3. **Start position**:
-Start the program 'start_point.urp'
-You will need to keep pressing the button "Move robot to :3: Waypoint_1", It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver instead (the black button on the top back of the Teach pendant) while you are moving the robot with your hand to a safest position, then go back to press the button "Move robot to :3: Waypoint_1".
-4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, set the Mx, My, Mz to 0.2N per division.
+Start the program 'start_point.urp', by clicking on "play" (bottom right corner), then on "robot program"
+You will need to press and hold the button "Move robot to :3: Waypoint_1", It will go to the initial position, Important; if you see that the robot is heading strait to bump into something, just press the free driver instead (the black button on the top back of the Teach pendant) while you are moving the robot with your hand to a safest position, then go back to press the button "Move robot to :3: Waypoint_1".
+4. **AMTI-NetForce**: To see the forces and moments graphs in real time, Open AMTI-NetForce application, go to Amp ID press right array to select 1 on both windows, on the upper one go to Units, and set Fx, Fy to 1N per division and Fz to 5N per division, In the lower one, go to "Setup" set the Mx, My, Mz to 0.2N per division.
 Go to Startup and select Hardware Zero, then select Start
 <img src="Images/amti.jpg" alt="Montage Image" width="500">
 
@@ -96,7 +97,7 @@ Watch the graphs on the AMTI-NetForce, and Press the free driver to move the rob
 
 6. **Set the payload**: On the Teach pendant go to 'Installation -> General -> Payload' and measure the payload, or just choose "loadcell" in the first drop-down bar if you are working with the actual set and spine.  
 7. **Set the tool center position**: On the Teach pendant go to 'Installation -> General -> TCP', and set it up to the center of the intervertabrae, or just choose "loadcell_spine" in the first drop-down bar if you are working with the actual set and spine.
-(for my sample it is z = 17.5)  
+(for my sample it is z = 175mm)  
 
 9. **Running the Program on PC**
 Note the name of the directory
@@ -104,16 +105,25 @@ On the terminal, Navigate to the Source Directory: Change to the src directory w
 ```sh
 cd src
 ```
-**Running the Complete Movement Sequence**
-To program all movements at the start, execute the following command:
-while being in the directory G:\ur5-pseudo-load\src>
-Type on the terminal.
+**Running the classical spine tester**
+This script will automatically program and execute a sequence of movements on the robot. The sequence includes:
+
+- 5 cycles of flexion/extension: The robot performs five cycles and then returns to the initial position.
+- 5 cycles of lateral bending: After completing the flexion/extension cycles, the robot executes five cycles of lateral bending and then returns to the initial position.
+- 5 cycles of axial rotation: Finally, the robot performs five cycles of axial rotation before returning to the initial position.
+The script also configures all necessary control parameters, allowing the robot to follow the predefined path seamlessly. User intervention is only required in case of an emergency stop.
+To run this code, type:
+```sh
+python spine_tester.py
+```  
+**Running the general tester**
+This script will ask the user for inputs, and you can execute all sorts of motions, having more flexibility.
+To run this code, type:
 ```sh
 python pseudo_load.py
 ```  
-This script initializes and sends the entire sequence of movements with the numbers of cycles to execute to the robot in one go. It sets up the necessary control parameters, ensuring that the robot executes the pre-defined path without further user intervention, except for emergency stops.  
 **Explanation of Inputs:**  
-Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as speed vectors or thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.  
+Enter the Necessary Inputs: During execution, the program will prompt you for specific inputs, such as the name of the force/torque output file, you should put .lvm as the extension, number of cycles for each movement, speed vectors and thresholds. Provide these inputs as required to ensure the robot operates under the correct parameters.  
 - **Speed Vectors**: These determine the velocity at which the robot moves (m/s, m/s, m/s, rad/s, rad/s, rad/s). Ensure these values are set according to the required test parameters. You can freely choose the speed, but running it at 0.05m/s and 0.03rad/s is generally sufficient.  
 Note that slower speeds gives higher precision
 - **Force Thresholds**: These values set the limits for the forces applied during the tests. The robot will adjust its movements to stay within these thresholds.

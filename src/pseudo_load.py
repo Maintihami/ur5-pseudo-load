@@ -5,6 +5,7 @@ import numpy as np
 import os
 import sys
 import logging
+from scipy.spatial.transform import Rotation as R
 
 # This script initializes and sends the entire sequence of movements to the robot in one execution.
 # It sets up the necessary control parameters, ensuring that the robot follows the pre-defined path
@@ -105,6 +106,7 @@ def get_valid_mode():
     while True:
         try:
             mode = int(input("Enter the desired mode (0-4) [0&1: metric, 2&3: english, 4: Bits]: "))
+            # mode =1
             if mode in units_dict:
                 return mode
             else:
@@ -113,7 +115,7 @@ def get_valid_mode():
             print("Invalid input. Please enter an integer between 0 and 4.")
 
 # Configure data output mode
-mode = get_valid_mode()
+mode = 1
 amti_dll.fmBroadcastRunMode(mode)
 force_units, moment_units, commentaire = units_dict[mode]
 print(commentaire)
@@ -134,7 +136,7 @@ def get_valid_frequency(max_recommended=500):
 
 # Set the acquisition rate
 # signal_frequency = get_valid_frequency()
-signal_frequency = 100
+signal_frequency = 500
 amti_dll.fmBroadcastAcquisitionRate(signal_frequency)       #The new acquisition rate will take affect with the next Start command
 print(f"Acquisition rate set to {signal_frequency} Hz.")
 
@@ -156,7 +158,8 @@ data_values = []        #to store the data received, it includes the none values
 # Define the sample rate
 # The  Nyquist–Shannon sampling theorem states that the sample rate must be at least twice the bandwidth of the signal to avoid aliasing
 
-sample_rate = 1/200
+# sample_rate = 1/2*signal_frequency
+sample_rate = 1/100
 
 # Define the relative path for the output folder
 output_folder = '../output'
@@ -171,7 +174,9 @@ output_path = os.path.join(script_dir, output_folder)
 os.makedirs(output_path, exist_ok=True)
 
 # Specify the relative path for the new output file
-output_file_path = os.path.join(output_path, "output.lvm")
+output_file_name = input("Enter the name of the output file.lvm : ")
+output_file_path = os.path.join(output_path, output_file_name)
+output_position_path = os.path.join(output_path, "position.txt")
 """-----------------------------control parameters-----------------------------------"""
 
 # Add the parent directory of src to the Python path
@@ -201,7 +206,7 @@ logging.getLogger().setLevel(logging.INFO)
 conf = rtde_config.ConfigFile(config_filename)
 state_names, state_types = conf.get_recipe('state')
 Vspeed_names, Vspeed_types = conf.get_recipe('Vspeed')
-servoing_names, servoing_types = conf.get_recipe('servoing')
+fsm_names, fsm_types = conf.get_recipe('FSM')
 # Connexion to the robot
 con = rtde.RTDE(ROBOT_HOST, ROBOT_PORT)
 con.connect()
@@ -212,7 +217,7 @@ con.get_controller_version()
 # Send the recipes to the controller
 con.send_output_setup(state_names, state_types)
 Vspeed = con.send_input_setup(Vspeed_names, Vspeed_types)
-servoing = con.send_input_setup(servoing_names, servoing_types)
+fsm = con.send_input_setup(fsm_names, fsm_types)
 
 Vspeed.input_double_register_0 = 0
 Vspeed.input_double_register_1 = 0
@@ -220,7 +225,8 @@ Vspeed.input_double_register_2 = 0
 Vspeed.input_double_register_3 = 0
 Vspeed.input_double_register_4 = 0
 Vspeed.input_double_register_5 = 0
-servoing.input_int_register_0 = 0
+fsm.input_int_register_0 = 0
+fsm.input_int_register_1 = 0
 # Fonctions utilitaires pour la conversion entre les listes et les points de consigne
 def Vspeed_to_list(Vspeed):
     return [Vspeed.__dict__[f"input_double_register_{i}"] for i in range(6)]
@@ -258,6 +264,7 @@ def check_force_limits(selected_forces, thresholds, logic_op):
     
     return check_condition
 
+
 # Function to collect the initial inputs from the user
 def collect_initial_inputs():
     Vspeed_list = []
@@ -271,6 +278,7 @@ def collect_initial_inputs():
         while True:
             try:
                 cycles = float(input("Enter the number of cycles: "))
+                # cycles = 2
                 if cycles > 0:
                     cycles_list.append(cycles)
                     break
@@ -282,6 +290,7 @@ def collect_initial_inputs():
         while True:
             try:
                 Vspeed_input = input("Enter the speed vector values in the base frame (m/s)(rad/s) (0.03,0,0,0,0,0): ")
+                # Vspeed_input = "0.03,0,0,0,0,0"
                 Vspeed_input = [float(value.strip()) for value in Vspeed_input.split(',')]
                 if len(Vspeed_input) == 6:
                     Vspeed_list.append(Vspeed_input)
@@ -350,6 +359,38 @@ def collect_initial_inputs():
         
         
     return Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list
+
+def convert_coordinates(O):
+    """
+    Convert the coordinates of point O to a new point A using a fixed translation vector.
+    
+    :param O: List of 6 elements where the first 3 are the cartesian coordinates and the last 3 are the angles (in radians).
+    :return: List of 6 elements representing the new coordinates of point A.
+    """
+    # Decompose the input vector
+    O_cartesian = O[:3]  # First 3 elements are the cartesian coordinates
+    angles = O[3:]  # Last 3 elements are the angles in radians
+
+    # Define the fixed translation vector P' = (7.7, 7.7, 15.8)
+    translation = [7.7, 7.7, 15.8]
+
+    # Create a rotation matrix from the Euler angles (XYZ)
+    rotation_matrix = R.from_euler('xyz', angles).as_matrix()
+
+    # Translate point O by the translation vector
+    O_prime = np.array(O_cartesian) - np.array(translation)
+
+    # Apply the rotation to O_prime
+    O_rotated = rotation_matrix.dot(O_prime)
+
+    # Translate again to get the coordinates of A
+    A_cartesian = O_rotated + np.array(translation)
+
+    # The angles remain the same after translation
+    A = np.concatenate([A_cartesian, angles])
+
+    return A.tolist()
+
 
 # Collect all inputs at the start
 Vspeed_list, selected_forces_list, thresholds_list, logic_op_list, cycles_list = collect_initial_inputs()
@@ -428,8 +469,7 @@ loop_frequencies = []
 t0 = time.time()
 Fx, Fy, Fz = [], [], []
 Mx, My, Mz = [], [], []
-
-
+tcp_pose_list = []
 """-----------------------------main loop-----------------------------------"""
 try:
     print("Collecting data. Press Ctrl+C to stop.")
@@ -501,8 +541,12 @@ try:
             state = con.receive()
             if state is None:
                 break
-            servoing.input_int_register_0  = 1
-            con.send(servoing)
+            # print(f"Received state: {state}")
+            fsm.input_int_register_0  = 1
+            con.send(fsm)
+            # print(state.actual_TCP_pose)
+            tcp=state.actual_TCP_pose
+            tcp_pose_list.append(tcp)
             if state.output_int_register_0 != 0:
                 con.send(Vspeed1)
                 
@@ -514,9 +558,8 @@ try:
                 print("Force limits exceeded.")
                 with open(output_file_path, 'a') as f:
                     f.write(f"Force limits exceeded at cycle {current_cycle}.\n")
-                servoing.input_int_register_0 = 0
-                
-                con.send(servoing)
+                fsm.input_int_register_0 = 0
+                con.send(fsm)
                 
                 force_names = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
                 for index in exceeded_indices:
@@ -527,7 +570,7 @@ try:
                     continue
                 time.sleep(2)               # Wait for the robot to stop
                 current_cycle += 0.5        # Increment the cycle count by 0.5
-                if current_cycle < cycles_list[current_index]:
+                if current_cycle < cycles_list[current_index]-0.5:
                     #initialize the force and moment values
                     Fx, Fy, Fz = [], [], []
                     Mx, My, Mz = [], [], []
@@ -538,9 +581,17 @@ try:
                     con.send(Vspeed1)
                     check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
                     
-                    servoing.input_int_register_0 = 1
-                    con.send(servoing)
+                    fsm.input_int_register_0 = 1
+                    con.send(fsm)
                 else:
+                    # move to initial position
+                    fsm.input_int_register_1 = 1
+                    con.send(fsm)
+                    print("All cycles have been completed. Moving to the initial position.")
+                    while state.output_int_register_0 != 2:
+                        state = con.receive()
+                    fsm.input_int_register_1 = 0
+                    con.send(fsm)
                     # Move to the next set of inputs
                     current_index += 1
                     current_cycle = 0
@@ -556,10 +607,16 @@ try:
                         check_limits = check_force_limits(selected_forces, thresholds, logic_ops)
                         Vspeed1 = list_to_Vspeed(Vspeed, Vspeed_input)
                         con.send(Vspeed1)
-                        servoing.input_int_register_0 = 1
-                        con.send(servoing)
+                        # fsm.input_int_register_0 = 1
+                        # fsm.input_int_register_1 = 0
+                        # con.send(fsm)
+                        
                     else:
                         print("All input sets have been used. Stopping.")
+                        fsm.input_int_register_0 = 0
+                        fsm.input_int_register_1 = 1
+                        con.send(fsm)
+                        time.sleep(2)  # Wait for the robot to stop
                         break
 
             # Additional processing...
@@ -625,4 +682,30 @@ plt.show()
 
 
 
+# Write the positions to a text file
+with open(output_position_path, 'w') as p:
+    for pos in tcp_pose_list:
+        A = convert_coordinates(pos)        # Convert the coordinates to point A
+        p.write(f"{A[0]:<10.5f}\t{A[1]:<10.5f}\t{A[2]:<10.5f}\t{A[3]:<10.5f}\t{A[4]:<10.5f}\t{A[5]:<10.5f}\n")
+
+                
+
+# Create a 3D scatter plot for positions
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+# Extract positions and orientations
+positions = [tcp[:3] for tcp in tcp_pose_list]
+orientations = [tcp[3:] for tcp in tcp_pose_list]
+# Unpack positions into x, y, z
+x, y, z = zip(*positions)
+ax.scatter(x, y, z, c='b', marker='o')
+
+# # Optionally, add quivers to represent orientations
+# for pos, ori in zip(positions, orientations):
+#     ax.quiver(pos[0], pos[1], pos[2], ori[0], ori[1], ori[2], length=0.1, normalize=True)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+plt.show()
 
